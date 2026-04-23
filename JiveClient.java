@@ -8,40 +8,31 @@ import java.net.Socket;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
 
-class Client {
+public class JiveClient {
 
     private final Socket client;
     private final String name;
 
-    public Client(int port) throws UnknownHostException, IOException {
+    public JiveClient(int port) throws UnknownHostException, IOException {
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         name = readUsername(stdin);
 
         client = new Socket("localhost", port);
         System.out.println("[INFO] Connected to server");
 
-        try (
-            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-        ) {
+        Thread readThread = new Thread(new MsgReader(client));
+        readThread.start();
 
+        try (PrintWriter out = new PrintWriter(client.getOutputStream(), true)) {
             String msg;
             while (!(msg = stdin.readLine()).equals("quit")) {
                 msg = name + ": " + msg;
-                System.out.println(msg);
                 out.println(msg);
-
-                String recv = in.readLine();
-                if (recv == null) {
-                    System.out.println("[INFO] Server closed");
-                    break;
-                } else {
-                    System.out.println(recv);
-                }
             }
         } catch(IOException e) {
             System.err.println(e.getMessage());
         } finally {
+            readThread.interrupt();
             client.close();
         }
 
@@ -52,15 +43,40 @@ class Client {
         System.out.print("Enter username: ");
         return stdin.readLine();
     }
-}
-
-public class JiveClient {
     public static void main(String[] args) {
         try {
-            Client client = new Client(7007);
+            JiveClient client = new JiveClient(7007);
         } catch(IOException e) {
             System.err.println(e.getMessage());
             System.exit(1);
+        }
+    }
+}
+
+class MsgReader implements Runnable {
+
+    private final Socket client;
+    private final BufferedReader in;
+
+    public MsgReader(Socket client) throws IOException {
+        this.client = client;
+        in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+    }
+
+    public void run() {
+        String recv;
+        while (!Thread.currentThread().isInterrupted()) {
+            try {
+                recv = in.readLine();
+                if (recv == null) {
+                    System.out.println("[INFO] Server closed");
+                    break;
+                } else {
+                    System.out.println(recv);
+                }
+            } catch(IOException e) {
+                System.err.println(e.getMessage());
+            }
         }
     }
 }
