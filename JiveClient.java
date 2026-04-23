@@ -18,19 +18,22 @@ class Client {
 
         try (
             BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-            InputStream in = client.getInputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
             PrintWriter out = new PrintWriter(client.getOutputStream(), true);
         ) {
 
-            byte[] buf = new byte[256];
             String line;
             while (!(line = stdin.readLine()).equals("quit")) {
                 System.out.println("send: " + line);
                 out.println(line);
 
-                int n = in.read(buf);
-                String recv = new String(buf, 0, n).strip();
-                System.out.println("revc: " + recv);
+                String recv = in.readLine();
+                if (recv == null) {
+                    System.out.println("[INFO] Server closed");
+                    break;
+                } else {
+                    System.out.println("revc: " + recv);
+                }
             }
         } catch(IOException e) {
             System.err.println(e.getMessage());

@@ -1,6 +1,9 @@
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
@@ -26,15 +29,14 @@ class EchoServer {
     private void readLoop() throws IOException {
         int n = 0;
         try (
-            InputStream in = client.getInputStream();
-            OutputStream out = client.getOutputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            PrintWriter out = new PrintWriter(client.getOutputStream(), true);
         ) {
-            byte[] buf = new byte[256];
 
-            while ((n = in.read(buf)) != -1) {
-                String received = new String(buf, 0, n).trim();
-                System.out.println("[DEBUG] Received: " + received);
-                out.write(buf, 0, n);
+            String msg;
+            while ((msg = in.readLine()) != null) {
+                System.out.println("[INFO] Received: " + msg);
+                out.println(msg);
             }
         } catch (IOException e) {
             System.err.println(e.getMessage());
@@ -59,4 +61,3 @@ public class JiveChat {
         }
     }
 }
-
