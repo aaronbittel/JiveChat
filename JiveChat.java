@@ -32,6 +32,8 @@ class EchoServer {
             byte[] buf = new byte[256];
 
             while ((n = in.read(buf)) != -1) {
+                String received = new String(buf, 0, n).trim();
+                System.out.println("[DEBUG] Received: " + received);
                 out.write(buf, 0, n);
             }
         } catch (IOException e) {
