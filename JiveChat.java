@@ -27,7 +27,6 @@ class EchoServer {
     }
 
     private void readLoop() throws IOException {
-        int n = 0;
         try (
             BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
             PrintWriter out = new PrintWriter(client.getOutputStream(), true);
@@ -35,7 +34,7 @@ class EchoServer {
 
             String msg;
             while ((msg = in.readLine()) != null) {
-                System.out.println("[INFO] Received: " + msg);
+                System.out.println("[INFO] " + msg);
                 out.println(msg);
             }
         } catch (IOException e) {
@@ -43,7 +42,7 @@ class EchoServer {
         } finally {
             client.close();
         }
-        if (n == -1) System.out.println("[INFO] Client disconnected");
+        System.out.println("[INFO] Client disconnected");
     }
 }
 

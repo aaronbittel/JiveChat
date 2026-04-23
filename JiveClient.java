@@ -11,28 +11,32 @@ import java.net.UnknownHostException;
 class Client {
 
     private final Socket client;
+    private final String name;
 
     public Client(int port) throws UnknownHostException, IOException {
+        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+        name = readUsername(stdin);
+
         client = new Socket("localhost", port);
-        System.out.println("[INFO] Client connected");
+        System.out.println("[INFO] Connected to server");
 
         try (
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
             BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
             PrintWriter out = new PrintWriter(client.getOutputStream(), true);
         ) {
 
-            String line;
-            while (!(line = stdin.readLine()).equals("quit")) {
-                System.out.println("send: " + line);
-                out.println(line);
+            String msg;
+            while (!(msg = stdin.readLine()).equals("quit")) {
+                msg = name + ": " + msg;
+                System.out.println(msg);
+                out.println(msg);
 
                 String recv = in.readLine();
                 if (recv == null) {
                     System.out.println("[INFO] Server closed");
                     break;
                 } else {
-                    System.out.println("revc: " + recv);
+                    System.out.println(recv);
                 }
             }
         } catch(IOException e) {
@@ -42,6 +46,11 @@ class Client {
         }
 
         System.out.println("[INFO] Client disconnected");
+    }
+
+    private String readUsername(BufferedReader stdin) throws IOException {
+        System.out.print("Enter username: ");
+        return stdin.readLine();
     }
 }
 
